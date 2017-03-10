@@ -23,7 +23,7 @@ public class Sensors {
 	
 	
 	final double xDistance = 6*3.14159265358979/100 *130/135 * 132/125 * 132/130 * 135/143;
-	final double yDistance = 6*3.14159265358979/2000 * 14/60 * 161/152 * 146/163 *145/147;
+	final double yDistance = 6*3.14159265358979/2000 * 14/60 * 161/152 * 146/163 * 145/147;
 	
 	double d_potStart;
 	double d_potNow;
