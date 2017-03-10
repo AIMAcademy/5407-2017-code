@@ -6,6 +6,7 @@ public class Inputs {
 	
 	Joystick xBox1;
 	Joystick xBox2;
+	Joystick climbSwitch;
 	
 	double d_LeftXAxis1;
 	double d_LeftYAxis1;
@@ -87,10 +88,16 @@ public class Inputs {
 	boolean b_RightStickLast2;
 	
 	
+	
+	boolean b_climbSwitch;
+	
+	
 	public Inputs(int USBConnector_Controller1,
-			int USBConnector_Controller2){
+			int USBConnector_Controller2,
+			int USBConnector_ClimbSwitch){
 		xBox1 = new Joystick(USBConnector_Controller1);
 		xBox2 = new Joystick(USBConnector_Controller2);
+		climbSwitch = new Joystick(USBConnector_ClimbSwitch);
 		zeroInputs();
 	}
 	
@@ -208,6 +215,9 @@ public class Inputs {
 		
 		i_DPad2 = xBox2.getPOV();
 
+		
+		
+		b_climbSwitch = climbSwitch.getRawButton(7);
 	}
 	
 	public String getDPad1(){
@@ -624,5 +634,7 @@ public class Inputs {
 		this.b_RightBumperLast2 = false;
 		this.b_LeftStickLast2 = false;
 		this.b_RightStickLast2 = false;
+		
+		this.b_climbSwitch = false;
 	}
 }

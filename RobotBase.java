@@ -66,27 +66,9 @@ public class RobotBase {
 	
 	
 	public void driveStraight(double forwardSpeed, double sidewaysSpeed, double followAngle, double presentAngle){
-		this.omniDrive(forwardSpeed, sidewaysSpeed, (followAngle-presentAngle)/10);
-		
+		this.omniDrive(forwardSpeed, sidewaysSpeed, (followAngle-presentAngle)/50);
+		 
 	}
 	
-	
-	
-	
-/*	public void driveStraight(double speed, double gyroReading){
-		this.omniDrive(-1*speed, 0, -1*(gyroReading/10));
-	}
-	
-	public void turnToAngle(double angle, double gyroReading){
-		this.omnidrive(0 , 0, (angle- gyroReading)/10)
-	}
-	
-	public void driveAtAngle(double speed, double angle, double gyroReading){
-		this.driveStraight(speed, gyroReading + angle);
-	}
-	
-	public void faceForward(double gyroReading){
-		this.omniDrive(-0, 0, -1*(gyroReading/10));
-	}*/
 	
 }
