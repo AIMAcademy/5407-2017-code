@@ -248,7 +248,7 @@ public class Robot extends IterativeRobot {
 		presentYDistance = sensors.encY.getDistance();
 		presentAngle = sensors.getPresentAngle();
 
-		autonSelected = customAuton2;
+
 		
 
 		if (autonSelected == defaultAuton){
