@@ -215,6 +215,8 @@ public class Robot extends IterativeRobot {
 	public void autonomousInit() {
 		timer.reset();
 		timer.start();
+		solenoids.initializeSolenoids();
+
 
 		presentXDistance = sensors.encX.getDistance();
 		presentYDistance = sensors.encY.getDistance();
@@ -246,6 +248,8 @@ public class Robot extends IterativeRobot {
 		presentYDistance = sensors.encY.getDistance();
 		presentAngle = sensors.getPresentAngle();
 
+		autonSelected = customAuton2;
+		
 
 		if (autonSelected == defaultAuton){
 			defaultAuton();
@@ -298,6 +302,7 @@ public class Robot extends IterativeRobot {
 	//@Override
 	public void teleopInit() {
 
+		solenoids.initializeSolenoids();
 
 		sensors.analogGyro.reset();
 		sensors.setFollowAngle(0.0);
@@ -368,7 +373,7 @@ public class Robot extends IterativeRobot {
 		shooter.mot_BallFeed.set(inputs.d_LeftTrigger2);
 		
 	
-		if (inputs.tapLeftBumper2()){
+		if (inputs.tapRightBumper2()){
 			solenoids.s_DualSpeedShifter.set(!solenoids.s_DualSpeedShifter.get());
 		}
 
@@ -592,7 +597,7 @@ public class Robot extends IterativeRobot {
 		//Turn Left 90 Degrees
 		else if (autonCounter == 3){
 			if (timer.get()<1){
-				robotBase.driveStraight(0, 0, -90, sensors.getPresentAngle());	
+				robotBase.driveStraight(0, 0, -90 * side, sensors.getPresentAngle());	
 			}
 			else {
 				robotBase.stop();
@@ -605,7 +610,7 @@ public class Robot extends IterativeRobot {
 		//Drive Forward
 		else if (autonCounter == 4){
 			if (timer.get()<2){
-				robotBase.driveStraight(-0.75, 0, -90, sensors.getPresentAngle());	
+				robotBase.driveStraight(-0.75, 0, -90 * side, sensors.getPresentAngle());	
 			}
 			else {
 				robotBase.stop();
@@ -631,7 +636,7 @@ public class Robot extends IterativeRobot {
 		//Drive Sideways over baseline
 		else if (autonCounter == 6){
 			if (timer.get() < 4){
-				robotBase.driveStraight(0, 0.75, -90, sensors.getPresentAngle());	
+				robotBase.driveStraight(0, 0.75, -90 * side, sensors.getPresentAngle());	
 			}
 			else {
 				robotBase.stop();

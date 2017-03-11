@@ -42,7 +42,7 @@ public class Solenoids {
 
 
 	public void initializeSolenoids(){
-		s_DualSpeedShifter.set(true);
+		s_DualSpeedShifter.set(false);
 		s_GearLift.set(false);
 		s_GearTilt.set(false);
 		s_GearGrab.set(true);
