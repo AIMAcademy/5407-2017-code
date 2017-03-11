@@ -86,9 +86,10 @@ public class Robot extends IterativeRobot {
 
 
 	final double distToCPeg = 100.25;
-	final double distToSPeg = 84;
-	final double distToBaseline = 150;
-
+	final double distToSPeg = 89;
+	final double distToSPeg2 = 80;
+	final double distToBaseline = 185;
+	final double distToSide = 140;
 
 	/**
 	 * _
@@ -213,26 +214,42 @@ public class Robot extends IterativeRobot {
 
 	//@Override
 	public void autonomousInit() {
+		
+		//Sets initial auton conditions
+		
+		autonCounter = 0;
+		
 		timer.reset();
 		timer.start();
+		
 		solenoids.initializeSolenoids();
-
+		solenoids.s_GearGrab.set(false);
 
 		presentXDistance = sensors.encX.getDistance();
 		presentYDistance = sensors.encY.getDistance();
+		
+		sensors.analogGyro.reset();
 		presentAngle = sensors.getPresentAngle();
 
 
-		autonSelected =  chooser.getSelected();
+		autonSelected = chooser.getSelected();
 		SmartDashboard.putString("My Selected Auton is ", autonSelected);
 
 		lowShootSpeed = Double.parseDouble(shootChooser.getSelected());
+		
+		if (sideChooser.getSelected() == leftStart){
+			side = 1.0;
+		}
+		else if (sideChooser.getSelected() == rightStart){
+			side = -1.0;
+		}
+		else {
+			side = 0.0;
+		}
+		
 
 
-		//Sets initial auton conditions
-		solenoids.s_GearGrab.set(false);
-		autonCounter = 0;
-		sensors.analogGyro.reset();
+
 	}
 
 	/**
@@ -308,15 +325,8 @@ public class Robot extends IterativeRobot {
 		sensors.setFollowAngle(0.0);
 		sensors.encX.reset();
 		sensors.encY.reset();
-		if (sideChooser.getSelected() == leftStart){
-			side = 1.0;
-		}
-		else if (sideChooser.getSelected() == rightStart){
-			side = -1.0;
-		}
-		else {
-			side = 0.0;
-		}
+		
+
 	
 
 	}
@@ -472,9 +482,9 @@ public class Robot extends IterativeRobot {
 	public void customAuton1(){
 
 		// drive forward
-		if (autonCounter ==0){
+		if (autonCounter == 0){
 			if (timer.get() < 2){
-				robotBase.driveStraight(-0.5, 0, 0, presentAngle);
+				robotBase.driveStraight(-0.5, 0, 0.0, presentAngle);
 			}
 			else {
 				robotBase.stop();
@@ -485,8 +495,8 @@ public class Robot extends IterativeRobot {
 		}
 
 		// drop off gear
-		else if (autonCounter ==1){
-			if (timer.get()<0.25){
+		else if (autonCounter == 1){
+			if (timer.get() < 0.25){
 				solenoids.resetGrabber();
 			}
 			else {
@@ -497,9 +507,9 @@ public class Robot extends IterativeRobot {
 		}
 
 		// drive backward
-		else if (autonCounter ==2){
+		else if (autonCounter == 2){
 			if (timer.get() < 2){
-				robotBase.driveStraight(0.5, 0, 0, presentAngle);
+				robotBase.driveStraight(0.5, 0, 0.0, presentAngle);
 			}
 			else {
 				robotBase.stop();
@@ -510,8 +520,8 @@ public class Robot extends IterativeRobot {
 		}
 
 		//  drive sideways.  Direction based on Side Choice
-		else if (autonCounter ==3){
-			if (timer.get() < 1){
+		else if (autonCounter == 3){
+			if (timer.get() < 2){
 				robotBase.driveStraight(0, side * 0.5, 0, presentAngle);
 			}
 			else {
@@ -536,7 +546,7 @@ public class Robot extends IterativeRobot {
 
 	// Just cross baseline
 	public void customAuton2(){
-		if (timer.get() <3)
+		if (timer.get() < 3)
 		{
 			robotBase.driveStraight(1, 0, 0.0, presentAngle);
 		}
