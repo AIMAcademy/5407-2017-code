@@ -23,20 +23,20 @@ public class Shooter {
 
 	
 	public void shoot(double speed){
-		this.mot_BallFeed.set(speed);
+		this.mot_BallFeed.set(-1*speed);
 		this.mot_BallShoot.set(-1*speed);
-		this.mot_LowShooter.set(-speed);
+		this.mot_LowShooter.set(-1*speed);
+	}
+
+	public void shootLow(double speed){
+		this.mot_BallFeed.set(-1*speed);
+		this.mot_LowShooter.set(speed);
 	}
 	
 	public void stop(){
 		this.mot_BallFeed.set(0);
 		this.mot_BallShoot.set(0);
 		this.mot_LowShooter.set(0);
-	}
-	
-	public void shootLow(double speed){
-		this.mot_BallFeed.set(1);
-		this.mot_LowShooter.set(speed);
 	}
 
 }

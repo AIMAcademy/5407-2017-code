@@ -12,11 +12,8 @@ public class Sensors {
 	
 	ADXRS450_Gyro analogGyro;
 	
-/*	AnalogPotentiometer testPotentiometer;
-	AnalogInput hallEffectSensor;
-	*/
-	
 	AnalogInput ultrasonic;
+	
 	Encoder encX;
 	Encoder encY;
 	
@@ -43,39 +40,22 @@ public class Sensors {
 	
 
 	
-	/*public double getPotAngle(){
-		this.d_potNow = this.testPotentiometer.get();
-		if (this.d_potStart<=0.5){
-			if (this.d_potNow < this.d_potStart+0.5){
-				return 360*(this.d_potNow-this.d_potStart);
-			}
-			else {
-				return 360*(this.d_potNow-this.d_potStart-1);
-			}
-		}
-		else {
-			if (this.d_potNow>this.d_potStart-0.5){
-				return 360*(this.d_potNow-this.d_potStart);
-			}
-			else {
-				return 360*(this.d_potNow-this.d_potStart+1); 
-			}
-			
-		}
-	}*/
-	
+	// returns distance in inches based on Ultrasonic reading
 	public double getDistance(){
 		return 83 * this.ultrasonic.getAverageVoltage();
 	}
 	
+	// sets follow angle used in the driveStraight function
 	public void setFollowAngle(double offset){
 		this.followAngle = this.analogGyro.getAngle() + offset;
 	}
 	
+	// returns the angle used in the driveStraight function
 	public double getFollowAngle() {
 		return this.followAngle;
 	}
 	
+	// returns the angle using the gyro
 	public double getPresentAngle(){
 		return this.analogGyro.getAngle();
 	}
