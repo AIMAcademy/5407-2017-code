@@ -24,16 +24,16 @@ public class Solenoids {
 			int i_sol3,
 			int i_sol4,
 			int i_light){
-
+		
 		s_DualSpeedShifter = new Solenoid(i_sol0);
 		s_GearLift = new Solenoid(i_sol1);
 		s_GearTilt = new Solenoid(i_sol2);
 		s_GearGrab = new Solenoid(i_sol3);
 		s_LowShooter = new Solenoid(i_sol4);
 		s_Light = new Solenoid(i_light);
-
+		
+		// used in pickUp function
 		solTimer = new Timer();
-
 		isTiming = false;
 		donePickUp = true;
 
@@ -56,6 +56,7 @@ public class Solenoids {
 		s_GearGrab.set(true);
 	}
 
+	// uses a timer to trigger a series of solenoids used to pick up gears
 	public void pickUp(){
 
 		if (!donePickUp){

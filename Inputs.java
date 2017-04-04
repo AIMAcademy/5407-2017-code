@@ -8,6 +8,8 @@ public class Inputs {
 	Joystick xBox2;
 	Joystick climbSwitch;
 	
+	
+	// Controller 1
 	double d_LeftXAxis1;
 	double d_LeftYAxis1;
 	double d_RightXAxis1;
@@ -32,6 +34,7 @@ public class Inputs {
 	
 	int i_DPad1;
 	
+	// Last is used in the tap functions
 	boolean b_ALast1;
 	boolean b_BLast1;
 	boolean b_XLast1;
@@ -48,7 +51,7 @@ public class Inputs {
 	
 	
 	
-	
+	// Controller 2
 	double d_LeftXAxis2;
 	double d_LeftYAxis2;
 	double d_RightXAxis2;
@@ -73,6 +76,9 @@ public class Inputs {
 	
 	int i_DPad2;
 	
+	
+	
+	// Last is used in the tap functions
 	boolean b_ALast2;
 	boolean b_BLast2;
 	boolean b_XLast2;
@@ -88,7 +94,7 @@ public class Inputs {
 	boolean b_RightStickLast2;
 	
 	
-	
+	// Other inputs
 	boolean b_climbSwitch;
 	
 	
@@ -104,8 +110,10 @@ public class Inputs {
 	public void readValues(){
 		
 		//  Each of these returns a double value between -1 and 1
+		//  Values between -0.2 and 0.2 have been removed to prevent drift
 		
 		
+		// Controller 1
 		if (xBox1.getRawAxis(0) < 0.2 && xBox1.getRawAxis(0)> -0.2){
 			d_LeftXAxis1 = 0.0;
 		}
@@ -140,7 +148,7 @@ public class Inputs {
 		
 		
 		
-		
+		// Controller 2
 		if (xBox2.getRawAxis(0) < 0.2 && xBox2.getRawAxis(0)> -0.2){
 			d_LeftXAxis2 = 0.0;
 		}
@@ -180,6 +188,7 @@ public class Inputs {
 		
 		
 		//  Buttons return true when pressed, false otherwise
+		
 		b_AButton1 = xBox1.getRawButton(1);
 		b_BButton1 = xBox1.getRawButton(2);
 		b_XButton1 = xBox1.getRawButton(3);
@@ -216,10 +225,13 @@ public class Inputs {
 		i_DPad2 = xBox2.getPOV();
 
 		
-		
+		// Other inputs
 		b_climbSwitch = climbSwitch.getRawButton(7);
 	}
 	
+	
+	// getDpad1 and getDpad 2 convert the angle to a String
+	// either U, D, L, or R
 	public String getDPad1(){
 		if (this.i_DPad1 < 45 || this.i_DPad1 >=315){
 			return "U";
@@ -332,6 +344,9 @@ public class Inputs {
 	}
 	
 	
+	
+	
+	// Each button has a tap function that returns a boolean
 	public boolean tapA1(){
 		boolean current = this.b_AButton1;
 		boolean last = this.b_ALast1;

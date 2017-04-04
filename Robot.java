@@ -22,16 +22,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 
 
-
-/**
- * _
- * The VM is configured to automatically run this class, and to call the
- * functions corresponding to each mode, as described in the IterativeRobot
- * documentation. If you change the name of this class or the package after
- * creating this project, you must also update the manifest file in the resource
- * directory.
- */
-
 public class Robot extends IterativeRobot {
 
 	Timer timer;
@@ -41,6 +31,8 @@ public class Robot extends IterativeRobot {
 	Solenoids solenoids;
 	Shooter shooter;
 	Climber climber;
+	
+	Thread visionThread;
 
 	int autonCounter;
 
@@ -59,12 +51,21 @@ public class Robot extends IterativeRobot {
 	boolean bp_MinDisplay;
 
 
-	final String defaultAuton = "Default Auton";
-	final String customAuton1 = "My Auton1";
-	final String customAuton2 = "My Auton2";
-	final String customAuton3 = "My Auton3";
-	final String customAuton4 = "My Auton4";
-	final String customAuton5 = "My Auton5";
+	final String defaultAuton = "Baseline";
+	final String customAuton1 = "Do Nothing";
+	final String customAuton2 = "Just Shoot";
+	final String customAuton3 = "Right Side Gear (BLUE)";
+	final String customAuton4 = "Left Side Gear (RED)";
+	final String customAuton5 = "Right Side Gear + Shoot (RED)";
+	final String customAuton6 = "Left Side Gear + Shoot (BLUE)";
+	final String customAuton7 = "Center Gear + Left";
+	final String customAuton8 = "Center Gear + Center";
+	final String customAuton9 = "Center Gear + Right";
+	final String customAuton10 = "";
+	final String customAuton11 = "";
+	final String customAuton12 = "";
+	final String customAuton13 = "";
+	final String customAuton14 = "";
 	String autonSelected;
 	SendableChooser<String> chooser;
 
@@ -75,29 +76,18 @@ public class Robot extends IterativeRobot {
 	final String quarterSpeed = "0.25";
 	double lowShootSpeed;
 	SendableChooser<String> shootChooser;
-	
-	
-	final String leftStart = "Left Start";
-	final String rightStart = "Right Start";
-	final String centerStart = "Center Start";
-	String startSide;
-	double side;
-	SendableChooser<String> sideChooser;
 
 
-	final double distToCPeg = 100.25;
-	final double distToSPeg = 84;
-	final double distToBaseline = 150;
+	final double autonAngle = 1.0;
+	final double autonSpeed = 0.55;
+
+	String inHighGear;
+	String grabberPosition;
 
 
-	/**
-	 * _
-	 * This function is run when the robot is first started up and should be
-	 * used for any initialization code.
-	 */
 
 	//@Override
-	public void robotInit() {	
+	public void robotInit() {
 		sensors = new Sensors(0); 				//Ultrasonic
 		robotBase = new RobotBase(0, 1, 2, 3); 	//These are for the 4 wheel motors
 		climber = new Climber(4);				//This is for the 1 winch motor
@@ -114,78 +104,29 @@ public class Robot extends IterativeRobot {
 				5);								//Camera Light
 		timer = new Timer();
 
+		
 		gotAngle = false;
 		stayStraight = true;
 
-		/*
-		grip = new GripTest();
 
-		table = NetworkTable.getTable("GRIP/myContoursReport");
-		 */
-
-
-		bp_MinDisplay = true;
-		Thread visionThread;
-
-
-
-
-		visionThread = new Thread(() -> {
-			// Get the Axis camera from CameraServer
-			AxisCamera camera = CameraServer.getInstance().addAxisCamera("10.54.7.10");
-
-
-			// Set the resolution
-			camera.setResolution(640, 480);
-
-
-			// Get a CvSink. This will capture Mats from the camera
-			CvSink cvSink = CameraServer.getInstance().getVideo();
-
-			// Setup a CvSource. This will send images back to the Dashboard
-			CvSource outputStream = CameraServer.getInstance().putVideo("Rectangle", 640, 480);
-
-			// Mats are very memory expensive. Lets reuse this Mat.
-			mat = new Mat();
-
-			// This cannot be 'true'. The program will never exit if it is. This
-			// lets the robot stop this thread when restarting robot code or
-			// deploying.
-			while (!Thread.interrupted()) {
-				// Tell the CvSink to grab a frame from the camera and put it
-				// in the source mat. If there is an error notify the output.
-				if (cvSink.grabFrame(mat) == 0) {
-					// Send the output the error.
-					outputStream.notifyError(cvSink.getError());
-					// skip the rest of the current iteration
-					continue;
-				}
-
-				// Put a scope on the image
-
-				Imgproc.circle(mat, new Point(160, 117), 100, new Scalar(255, 0, 0), 5 );
-				Imgproc.line(mat, new Point(160, 30), new Point(160, 90), new Scalar(0, 255, 255), 2); //Top Line
-				Imgproc.line(mat, new Point(160,150), new Point(160, 205), new Scalar(0, 255, 255), 2); //Bottom Line 
-				Imgproc.line(mat, new Point(65,117), new Point(130, 117), new Scalar(0, 255, 255), 2); // Right Side Line 
-				Imgproc.line(mat, new Point(190,117), new Point(255, 117), new Scalar(0, 255, 255), 2); //Left Side Line
-				Imgproc.circle(mat , new Point(160, 117), 10, new Scalar(255, 0, 0), 3  ); //Center Dot
-
-				// Give the output stream a new image to display
-				outputStream.putFrame(mat);
-			}
-		});
-		visionThread.setDaemon(true);
-		visionThread.start();
-
-
+		// SmartBoard Choosers
 
 		chooser = new SendableChooser<String>();
-		chooser.addDefault("Default Auton", defaultAuton);
-		chooser.addObject("My Auton1", customAuton1);
-		chooser.addObject("My Auton2", customAuton2);
-		chooser.addObject("My Auton3", customAuton3);
-		chooser.addObject("My Auton4", customAuton4);
-		chooser.addObject("My Auton5", customAuton5);
+		chooser.addDefault(defaultAuton, defaultAuton);
+		chooser.addObject(customAuton1, customAuton1);
+		chooser.addObject(customAuton2, customAuton2);
+		chooser.addObject(customAuton3, customAuton3);
+		chooser.addObject(customAuton4, customAuton4);
+		chooser.addObject(customAuton5, customAuton5);
+		chooser.addObject(customAuton6, customAuton6);
+		chooser.addObject(customAuton7, customAuton7);
+		chooser.addObject(customAuton8, customAuton8);
+		chooser.addObject(customAuton8, customAuton9);
+		chooser.addObject(customAuton8, customAuton10);
+		chooser.addObject(customAuton8, customAuton11);
+		chooser.addObject(customAuton8, customAuton12);
+		chooser.addObject(customAuton8, customAuton13);
+		chooser.addObject(customAuton8, customAuton14);
 		SmartDashboard.putData("Auton choices", chooser);
 
 
@@ -196,32 +137,42 @@ public class Robot extends IterativeRobot {
 		shootChooser.addObject("1/2 Speed", halfSpeed);
 		shootChooser.addObject("1/4 Speed", quarterSpeed);
 		SmartDashboard.putData("Shooter choices", shootChooser);
-
 		
-		
-		sideChooser = new SendableChooser<String>();
-		sideChooser.addDefault("Center Start", centerStart);
-		sideChooser.addObject("Right Start", rightStart);
-		sideChooser.addObject("Left Start", leftStart);
-		SmartDashboard.putData("Side Choice", sideChooser);
 	}
 
-	/**
-	 * _
-	 * This function is run once each time the robot enters autonomous mode
-	 */
+	//@Override
+	public void robotPeriodic(){
+		autonSelected =  chooser.getSelected();
+		SmartDashboard.putData("Auton choices", chooser);
+		SmartDashboard.putString("My Selected Auton is ", autonSelected);
+	}
 
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	//@Override
 	public void autonomousInit() {
+		
+		//Sets initial auton conditions
+		autonCounter = 0;
+		
 		timer.reset();
 		timer.start();
+		
 		solenoids.initializeSolenoids();
+		solenoids.s_GearGrab.set(false);
 
-
+		sensors.analogGyro.reset();
+		presentAngle = sensors.getPresentAngle();
+		
 		presentXDistance = sensors.encX.getDistance();
 		presentYDistance = sensors.encY.getDistance();
-		presentAngle = sensors.getPresentAngle();
-
 
 		autonSelected =  chooser.getSelected();
 		SmartDashboard.putString("My Selected Auton is ", autonSelected);
@@ -229,16 +180,10 @@ public class Robot extends IterativeRobot {
 		lowShootSpeed = Double.parseDouble(shootChooser.getSelected());
 
 
-		//Sets initial auton conditions
-		solenoids.s_GearGrab.set(false);
-		autonCounter = 0;
-		sensors.analogGyro.reset();
-	}
 
-	/**
-	 * _
-	 * This function is called periodically during autonomous
-	 */
+
+		
+	}
 
 	//@Override
 	public void autonomousPeriodic() {
@@ -249,7 +194,7 @@ public class Robot extends IterativeRobot {
 		presentAngle = sensors.getPresentAngle();
 
 
-		
+
 
 		if (autonSelected == defaultAuton){
 			defaultAuton();
@@ -260,202 +205,253 @@ public class Robot extends IterativeRobot {
 		}
 
 		else if (autonSelected == customAuton2){
-			customAuton1();
+			customAuton2();
 		}
 
 		else if (autonSelected == customAuton3){
-			customAuton1();
+			customAuton3();
 		}
 
 		else if (autonSelected == customAuton4){
-			customAuton1();
+			customAuton4();
 		}
 
 		else if (autonSelected == customAuton5){
-			customAuton1();
+			customAuton5();
 		}
 
-
-
-
-
-		/*		
-		double[] defaultValue = new double[0];
-		String answer = new String("");
-		double[] centerX = table.getNumberArray("centerX", defaultValue);
-
-		for (double center:centerX){
-			answer.concat(Double.toString(center));
-			answer.concat(" ");
+		else if (autonSelected == customAuton6){
+			customAuton6();
 		}
-		SmartDashboard.putString("Center: ", answer);
-		 */
+		
+		else if (autonSelected == customAuton7){
+			customAuton7();
+		}
+		
+		else if (autonSelected == customAuton8){
+			customAuton8();
+		}
+		
+		else if (autonSelected == customAuton9){
+			customAuton9();
+		}
+		
+		else if (autonSelected == customAuton10){
+			customAuton10();
+		}
+		
+		else if (autonSelected == customAuton11){
+			customAuton11();
+		}
+		
+		else if (autonSelected == customAuton12){
+			customAuton12();
+		}
+		
+		else if (autonSelected == customAuton13){
+			customAuton13();
+		}
+		
+		else if (autonSelected == customAuton14){
+			customAuton14();
+		}
 
 
 	}
-	/**
-	 * _
-	 * This function is called once each time the robot enters tele-operated
-	 * mode
-	 */
 
+
+	
+	
+	
+	
+	
+	
 	//@Override
 	public void teleopInit() {
 
-		solenoids.initializeSolenoids();
 
 		sensors.analogGyro.reset();
 		sensors.setFollowAngle(0.0);
 		sensors.encX.reset();
 		sensors.encY.reset();
-		if (sideChooser.getSelected() == leftStart){
-			side = 1.0;
-		}
-		else if (sideChooser.getSelected() == rightStart){
-			side = -1.0;
-		}
-		else {
-			side = 0.0;
-		}
-	
+
+
+
+		bp_MinDisplay = true;
+
 
 	}
-
-	/**
-	 * _
-	 * This function is called periodically during operator control
-	 */
 
 	//@Override
 	public void teleopPeriodic() {
 		// Reads all the inputs from the controller
 		inputs.readValues();
-
 		checkMinDisplay();	
 
-		//grip.process(mat);
+		driverControls();
+		operatorControls();
 
+		teleopDisplay();
 
+	}
 
-		//robotBase.omniDrive(inputs.d_RightYAxis1, inputs.d_RightXAxis1, inputs.d_LeftXAxis1);
-
-		if (inputs.tapStart2()){
-			stayStraight = !stayStraight;
-		}
-
-		if (stayStraight){
-
-			if (!gotAngle){
-				sensors.setFollowAngle(0.0);
-				gotAngle = true;
-			}
-			else if (inputs.d_LeftXAxis2 > 0.2 || inputs.d_LeftXAxis2 < -0.2){
-				robotBase.omniDrive(inputs.d_RightYAxis2, inputs.d_RightXAxis2, inputs.d_LeftXAxis2);
-				sensors.setFollowAngle(0.0);
-
-			}
-			else {
-				robotBase.driveStraight(inputs.d_RightYAxis2, inputs.d_RightXAxis2, sensors.getFollowAngle(), sensors.getPresentAngle());
-			}
-
-		}
-		else{
-			gotAngle = false;
-			robotBase.omniDrive(inputs.d_RightYAxis2, inputs.d_RightXAxis2, inputs.d_LeftXAxis2);
-		}
-
-
-
-
-		shooter.mot_BallShoot.set(-1*inputs.d_RightTrigger2);
-		shooter.mot_LowShooter.set(-1*inputs.d_RightTrigger2);
-
-		shooter.mot_BallFeed.set(inputs.d_LeftTrigger2);
+	// Driver controls used in teleopPeriodic
+	public void driverControls(){
 		
-	
-		if (inputs.tapRightBumper2()){
-			solenoids.s_DualSpeedShifter.set(!solenoids.s_DualSpeedShifter.get());
-		}
+		// shifts to high gear when right bumper is held down
+		solenoids.s_DualSpeedShifter.set(inputs.b_RightBumper2);
 
-		if (inputs.b_climbSwitch && inputs.d_LeftYAxis2 < -0.2){
+		// only climbs when the climb switch is engaged
+		if (inputs.b_climbSwitch){
 			climber.mot_climbMotor.set(inputs.d_LeftYAxis2);
 		}
 		else {
 			climber.mot_climbMotor.set(0.0); 
 		}
+		
+		// tap start to toggle stayStraight
+		if (inputs.tapStart2()){
+			stayStraight = !stayStraight;
+		}
 
+		
+		// when driving straight
+		if (stayStraight){
+
+			// get initial follow angle
+			if (!gotAngle){
+				sensors.setFollowAngle(0.0);
+				gotAngle = true;
+			}
+			
+			// change the follow angle when you rotate
+			else if (inputs.d_LeftXAxis2 > 0.2 || inputs.d_LeftXAxis2 < -0.2){
+				robotBase.omniDrive(inputs.d_RightYAxis2, inputs.d_RightXAxis2, inputs.d_LeftXAxis2);
+				sensors.setFollowAngle(0.0);
+
+			}
+			
+			else {
+				// drives slowly when left trigger is held down
+				if (inputs.d_LeftTrigger2 > 0.1){
+					robotBase.slowDriveStraight(inputs.d_RightYAxis2, inputs.d_RightXAxis2, sensors.getFollowAngle(), sensors.getPresentAngle());
+				}
+				// otherwise just drive straight
+				else {
+					robotBase.driveStraight(inputs.d_RightYAxis2, inputs.d_RightXAxis2, sensors.getFollowAngle(), sensors.getPresentAngle());
+				}
+			}
+
+		}
+		// regular omniDrive
+		else{
+			gotAngle = false;
+			robotBase.omniDrive(inputs.d_RightYAxis2, inputs.d_RightXAxis2, inputs.d_LeftXAxis2);
+		}
+		
+		
+	}
+	
+	// Operator controls used in teleopPeriodic
+	public void operatorControls(){
+		
+		// right trigger shoots
+		shooter.mot_BallShoot.set(-1*inputs.d_RightTrigger1);
+		shooter.mot_LowShooter.set(-1*inputs.d_RightTrigger1);
+		shooter.mot_BallFeed.set(-1*inputs.d_RightTrigger1);
+		
+		
+		// A tilts 
 		if (inputs.tapA1()){
 			solenoids.s_GearTilt.set(!solenoids.s_GearTilt.get());
 		}
+		
+		// left bumper grabs
 		if (inputs.tapLeftBumper1()){
 			solenoids.s_GearGrab.set(!solenoids.s_GearGrab.get());
 		}
+		
+		// right bumper lifts
 		if (inputs.tapRightBumper1()){
 			solenoids.s_GearLift.set(!solenoids.s_GearLift.get());
 		}
-		if (inputs.tapRightStick1()){
-			solenoids.s_Light.set(!solenoids.s_Light.get());
-		}
-
-
+		
+		// returns to original grabber position
 		if (inputs.tapX1()){
 			solenoids.resetGrabber();
 		}
-		if (inputs.tapRightStick1()){
-			solenoids.s_Light.set(!solenoids.s_Light.get());
-		}
-
+		
+		// picks up gear
 		if (inputs.tapY1()){
 			solenoids.donePickUp = false;
 		}
 		solenoids.pickUp();
+		
+		// press on right stick to toggle light
+		if (inputs.tapRightStick1()){
+			solenoids.s_Light.set(!solenoids.s_Light.get());
+		}
+	}
 
-		//SmartDashboard.putBoolean("R_MinDisplay(bool)", bp_MinDisplay);
-		//SmartDashboard.putNumber("Ultrasonic ", sensors.getDistance());
+	// SmartDashboard display used in teleopPeriodic
+	public void teleopDisplay(){
+
 		SmartDashboard.putNumber("Real Encoder X : ", sensors.encX.get());
 		SmartDashboard.putNumber("Real Encoder Y : ", sensors.encY.get());
 		SmartDashboard.putBoolean("CLimbSwitch", inputs.b_climbSwitch);
+		
+		// Shows if you are in HIGH or LOW gear
+		if (solenoids.s_DualSpeedShifter.get() == false){
+			inHighGear = "LOW";
+		}
+		else {
+			inHighGear = "HIGH!!!";
+		}
+		SmartDashboard.putString("High Gear", inHighGear);
 
-
-
+		// Shows if the grabber is OPEN or CLOSED
+		if (solenoids.s_GearGrab.get() == false){
+			grabberPosition = "OPEN";
+		}
+		else {
+			grabberPosition = "CLOSED!!!!";
+		}
+		SmartDashboard.putString("Grabber Position", grabberPosition);
+		
 	}
 
-	/**
-	 * _
-	 * This function is called periodically during test mode
-	 */
-
-	//@Override
-	public void testPeriodic() {
-		LiveWindow.run();
-	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	
 	public void checkMinDisplay(){
 		this.bp_MinDisplay = Preferences.getInstance().getBoolean("R_MinDisplay(bool)", true);	// ****  we do not zero this ****
 	}
 
 
-
-
-	// just shoots balls at selected speed
+	
+	
+	
+	// Baseline
 	public void defaultAuton(){
+		// drive forward
+		if (autonCounter ==0){
+			if (timer.get() < 3.25){
+				robotBase.driveStraight(-0.42, 0, 5, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+	}
+
+	// Do Nothing
+	public void customAuton1(){
+
+	}
+
+	// Just shoot
+	public void customAuton2(){
 		if (autonSelected == defaultAuton){
 			if (timer.get()<10){
 				solenoids.s_LowShooter.set(true);
@@ -468,13 +464,41 @@ public class Robot extends IterativeRobot {
 		}
 	}
 
-	// center start, deploy gear, cross baseline
-	public void customAuton1(){
+	// Right Side Gear
+	public void customAuton3(){
 
+		
 		// drive forward
 		if (autonCounter ==0){
-			if (timer.get() < 2){
-				robotBase.driveStraight(-0.5, 0, 0, presentAngle);
+			if (timer.get() < 1.88){
+				robotBase.autonDriveStraight(-1 * autonSpeed, 0, autonAngle, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+
+		//turn 60 degrees left
+		if (autonCounter == 1){
+			if (timer.get() < 1){
+				robotBase.autonDriveStraight(0, 0, -60 + autonAngle, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+
+
+		// drive forward
+		if (autonCounter == 2){
+			if (timer.get() < 2.2){
+				robotBase.autonDriveStraight(-1 * autonSpeed, 0, -60 + autonAngle, sensors.getPresentAngle());
 			}
 			else {
 				robotBase.stop();
@@ -485,8 +509,408 @@ public class Robot extends IterativeRobot {
 		}
 
 		// drop off gear
-		else if (autonCounter ==1){
-			if (timer.get()<0.25){
+		else if (autonCounter == 3){
+			if (timer.get()<0.5){
+				solenoids.resetGrabber();
+			}
+			else {
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+
+		// drive backward
+		else if (autonCounter == 4){
+			if (timer.get() < 1){
+				robotBase.autonDriveStraight(autonSpeed, 0, -60 + autonAngle, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+
+		//  drive sideways.  Direction based on Side Choice
+		else if (autonCounter == 5){
+			if (timer.get() < 1){
+				robotBase.autonDriveStraight(0, 1 * autonSpeed, autonAngle, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+
+		//cross baseline
+		else if (autonCounter ==6){
+			if (timer.get() < 1.25){
+				robotBase.autonDriveStraight(-1 * autonSpeed, 0, autonAngle, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+
+	}	
+	
+	// Left Side Gear
+	public void customAuton4(){
+
+		
+		// drive forward
+		if (autonCounter == 0){
+			if (timer.get() < 1.88){
+				robotBase.autonDriveStraight(-1 * autonSpeed, 0, autonAngle, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+
+		//turn 60 degrees right
+		if (autonCounter == 1){
+			if (timer.get() < 1){
+				robotBase.autonDriveStraight(0, 0, 60 + autonAngle, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+
+
+		// drive forward
+		if (autonCounter == 2){
+			if (timer.get() < 2.2){
+				robotBase.autonDriveStraight(-1 * autonSpeed, 0, 60 + autonAngle, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+
+		// drop off gear
+		else if (autonCounter == 3){
+			if (timer.get()<0.5){
+				solenoids.resetGrabber();
+			}
+			else {
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+
+		// drive backward
+		else if (autonCounter == 4){
+			if (timer.get() < 1){
+				robotBase.autonDriveStraight(autonSpeed, 0, 60 + autonAngle, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+
+		//  drive sideways.  Direction based on Side Choice
+		else if (autonCounter == 5){
+			if (timer.get() < 1){
+				robotBase.autonDriveStraight(0, -1 * autonSpeed, autonAngle, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+
+		//cross baseline
+		else if (autonCounter ==6){
+			if (timer.get() < 1.25){
+				robotBase.autonDriveStraight(-1 * autonSpeed, 0, autonAngle, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+	}
+
+
+	// Right Side Gear + Shoot (RED)
+	public void customAuton5(){
+
+		
+		// drive forward
+		if (autonCounter == 0){
+			if (timer.get() < 1.88){
+				robotBase.autonDriveStraight(-1 * autonSpeed, 0, autonAngle, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+
+		//turn 60 degrees left
+		if (autonCounter == 1){
+			if (timer.get() < 1){
+				robotBase.autonDriveStraight(0, 0, -60 + autonAngle, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+
+
+		// drive forward
+		if (autonCounter == 2){
+			if (timer.get() < 2.2){
+				robotBase.autonDriveStraight(-1 * autonSpeed, 0, -60 + autonAngle, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+
+		// drop off gear
+		else if (autonCounter == 3){
+			if (timer.get()<0.5){
+				solenoids.resetGrabber();
+			}
+			else {
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+
+		// drive backward
+		else if (autonCounter == 4){
+			if (timer.get() < 1){
+				robotBase.autonDriveStraight(autonSpeed, 0, -60 + autonAngle, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+
+		// turn around
+		else if (autonCounter == 5){
+			if (timer.get() < 2){
+				robotBase.autonDriveStraight(0, 0, -225 + autonAngle, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+		
+		// drive to boiler
+		else if (autonCounter == 6){
+			if (timer.get() < 1.75){
+				robotBase.autonDriveStraight(-1*autonSpeed, 0.75*autonSpeed, -225 + autonAngle, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+		
+		// Shoot balls
+		else if (autonCounter == 7){
+			if (timer.get() < 3){
+				shooter.shoot(1.0);
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+		
+		// baseline
+		if (autonCounter ==8){
+			if (timer.get() <2){
+				robotBase.autonDriveStraight(1, -1, -225 + autonAngle, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+
+	}
+
+
+	// Left Side Gear + Shoot (BLUE)
+	public void customAuton6(){
+		
+		// drive forward
+		if (autonCounter ==0){
+			if (timer.get() < 1.88){
+				robotBase.autonDriveStraight(-1 * autonSpeed, 0, autonAngle, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+
+		//turn 60 degrees right
+		if (autonCounter == 1){
+			if (timer.get() < 1){
+				robotBase.autonDriveStraight(0, 0, 60 + autonAngle, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+
+
+		// drive forward
+		if (autonCounter == 2){
+			if (timer.get() < 2.2){
+				robotBase.autonDriveStraight(-1 * autonSpeed, 0, 60 + autonAngle, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+
+		// drop off gear
+		else if (autonCounter == 3){
+			if (timer.get()<0.5){
+				solenoids.resetGrabber();
+			}
+			else {
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+
+		// drive backward
+		else if (autonCounter == 4){
+			if (timer.get() < 1){
+				robotBase.autonDriveStraight(autonSpeed, 0, 60 + autonAngle, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+
+
+		// turn around
+		else if (autonCounter == 5){
+			if (timer.get() < 2){
+				robotBase.autonDriveStraight(0, 0, 225 + autonAngle, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+		
+		// drive to boiler
+		else if (autonCounter == 6){
+			if (timer.get() < 1.75){
+				robotBase.autonDriveStraight(-1*autonSpeed, -0.75*autonSpeed, 225 + autonAngle, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+		
+		// Shoot balls
+		else if (autonCounter == 7){
+			if (timer.get() < 3){
+				shooter.shoot(1.0);
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+
+	}
+
+	// Center Gear + Left
+	public void customAuton7(){
+
+		// drive forward
+		if (autonCounter ==0){
+			if (timer.get() < 2.3){
+				robotBase.autonDriveStraight(-1 * autonSpeed, 0, autonAngle, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+
+		// drop off gear
+		else if (autonCounter == 1){
+			if (timer.get()<0.5){
 				solenoids.resetGrabber();
 			}
 			else {
@@ -498,8 +922,8 @@ public class Robot extends IterativeRobot {
 
 		// drive backward
 		else if (autonCounter ==2){
-			if (timer.get() < 2){
-				robotBase.driveStraight(0.5, 0, 0, presentAngle);
+			if (timer.get() < 1){
+				robotBase.autonDriveStraight(autonSpeed, 0, autonAngle, sensors.getPresentAngle());
 			}
 			else {
 				robotBase.stop();
@@ -510,20 +934,22 @@ public class Robot extends IterativeRobot {
 		}
 
 		//  drive sideways.  Direction based on Side Choice
-		else if (autonCounter ==3){
-			if (timer.get() < 1){
-				robotBase.driveStraight(0, side * 0.5, 0, presentAngle);
+		else if (autonCounter == 3){
+			if (timer.get() < 2.5){
+				robotBase.autonDriveStraight(0, -1 * autonSpeed, autonAngle, sensors.getPresentAngle());
 			}
 			else {
 				robotBase.stop();
 				autonCounter++;
+				timer.reset();
+				timer.start();
 			}
 		}
 
 		//cross baseline
 		else if (autonCounter ==4){
-			if (timer.get() < 2){
-				robotBase.driveStraight(1, 0, 0, presentAngle);
+			if (timer.get() < 2.75){
+				robotBase.autonDriveStraight(-1 * autonSpeed, 0, autonAngle, sensors.getPresentAngle());
 			}
 			else {
 				robotBase.stop();
@@ -533,48 +959,28 @@ public class Robot extends IterativeRobot {
 			}
 		}
 	}
+	// Center Gear + Center
+	public void customAuton8(){
 
-	// Just cross baseline
-	public void customAuton2(){
-		if (timer.get() <3)
-		{
-			robotBase.driveStraight(1, 0, 0.0, presentAngle);
-		}
-		else {
-			robotBase.stop();
-		}
-	}
-
-	public void customAuton3(){
-
-	}	
-
-	public void customAuton4(){
-
-	}	
-
-	
-	//gear + shoot + baseline
-	public void customAuton5(){
-
-
-		//Drive Forward and Drop gear
-		if (autonCounter == 0){
-			if (timer.get()<3){
-				robotBase.driveStraight(-0.75, 0, 0.0, sensors.getPresentAngle()); 
+		// drive forward
+		if (autonCounter ==0){
+			if (timer.get() < 2.3){
+				robotBase.autonDriveStraight(-1 * autonSpeed, 0, autonAngle, sensors.getPresentAngle());
 			}
 			else {
-				solenoids.s_GearGrab.set(true);								
 				robotBase.stop();
 				autonCounter++;
 				timer.reset();
 				timer.start();
 			}
 		}
-		 
-		// wait 1/4 second to make sure the gear drops
-		if (autonCounter == 1){
-			if (timer.get() > 0.25){
+
+		// drop off gear
+		else if (autonCounter == 1){
+			if (timer.get()<0.5){
+				solenoids.resetGrabber();
+			}
+			else {
 				autonCounter++;
 				timer.reset();
 				timer.start();
@@ -582,9 +988,9 @@ public class Robot extends IterativeRobot {
 		}
 
 		// drive backward
-		else if (autonCounter == 2){
-			if (timer.get()<1){
-				robotBase.driveStraight(0.75, 0, 0.0, sensors.getPresentAngle());	//Drive Backward
+		else if (autonCounter ==2){
+			if (timer.get() < 1){
+				robotBase.autonDriveStraight(autonSpeed, 0, autonAngle, sensors.getPresentAngle());
 			}
 			else {
 				robotBase.stop();
@@ -593,11 +999,13 @@ public class Robot extends IterativeRobot {
 				timer.start();
 			}
 		}
-
-		//Turn Left 90 Degrees
+		
+		
+		// wait for 5 seconds
+		
 		else if (autonCounter == 3){
-			if (timer.get()<1){
-				robotBase.driveStraight(0, 0, -90 * side, sensors.getPresentAngle());	
+			if (timer.get() < 5){
+				robotBase.stop();
 			}
 			else {
 				robotBase.stop();
@@ -606,11 +1014,10 @@ public class Robot extends IterativeRobot {
 				timer.start();
 			}
 		}
-
-		//Drive Forward
+		
 		else if (autonCounter == 4){
-			if (timer.get()<2){
-				robotBase.driveStraight(-0.75, 0, -90 * side, sensors.getPresentAngle());	
+			if (timer.get() < 1.2){
+				robotBase.autonDriveStraight(-1*autonSpeed, 0, autonAngle, sensors.getPresentAngle());
 			}
 			else {
 				robotBase.stop();
@@ -619,39 +1026,116 @@ public class Robot extends IterativeRobot {
 				timer.start();
 			}
 		}
-
-		//Shoot balls
-		else if (autonCounter == 5){
-			if (timer.get()<2){
-				shooter.shoot(1);												
-			}
-			else {
-				shooter.stop();
-				autonCounter++;
-				timer.reset();
-				timer.start();
-			}
-		}
-
-		//Drive Sideways over baseline
-		else if (autonCounter == 6){
-			if (timer.get() < 4){
-				robotBase.driveStraight(0, 0.75, -90 * side, sensors.getPresentAngle());	
-			}
-			else {
-				robotBase.stop();
-				autonCounter++;
-				timer.reset();
-				timer.start();
-			}
-		}
-
+		
+		
 	}
 
+	// Center Gear + Right
+	public void customAuton9(){
 
+		// drive forward
+		if (autonCounter == 0){
+			if (timer.get() < 2.3){
+				robotBase.autonDriveStraight(-1 * autonSpeed, 0, autonAngle, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
 
+		// drop off gear
+		else if (autonCounter == 1){
+			if (timer.get()<0.5){
+				solenoids.resetGrabber();
+			}
+			else {
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+
+		// drive backward
+		else if (autonCounter ==2){
+			if (timer.get() < 1){
+				robotBase.autonDriveStraight(autonSpeed, 0, autonAngle, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+
+		//  drive sideways.  Direction based on Side Choice
+		else if (autonCounter == 3){
+			if (timer.get() < 2.5){
+				robotBase.autonDriveStraight(0, autonSpeed, autonAngle, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+
+		//cross baseline
+		else if (autonCounter ==4){
+			if (timer.get() < 2.75){
+				robotBase.autonDriveStraight(-1 * autonSpeed, 0, autonAngle, sensors.getPresentAngle());
+			}
+			else {
+				robotBase.stop();
+				autonCounter++;
+				timer.reset();
+				timer.start();
+			}
+		}
+	}
+	
+	//
+	public void customAuton10(){
+		
+	}
+	
+	//
+	public void customAuton11(){
+		
+	}
+	
+	//
+	public void customAuton12(){
+		
+	}
+	
+	//
+	public void customAuton13(){
+		
+	}
+	
+	//
+	public void customAuton14(){
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	//@Override
+	public void testPeriodic() {
+		LiveWindow.run();
+	}
+	
+	
 }
-
 
 
 
