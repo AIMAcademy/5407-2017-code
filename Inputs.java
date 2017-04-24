@@ -6,8 +6,10 @@ public class Inputs {
 	
 	Joystick xBox1;
 	Joystick xBox2;
-	Joystick climbSwitch;
+	Joystick emulator;
 	
+	
+	// Controller 1
 	double d_LeftXAxis1;
 	double d_LeftYAxis1;
 	double d_RightXAxis1;
@@ -32,6 +34,7 @@ public class Inputs {
 	
 	int i_DPad1;
 	
+	// Last is used in the tap functions
 	boolean b_ALast1;
 	boolean b_BLast1;
 	boolean b_XLast1;
@@ -48,7 +51,7 @@ public class Inputs {
 	
 	
 	
-	
+	// Controller 2
 	double d_LeftXAxis2;
 	double d_LeftYAxis2;
 	double d_RightXAxis2;
@@ -73,6 +76,9 @@ public class Inputs {
 	
 	int i_DPad2;
 	
+	
+	
+	// Last is used in the tap functions
 	boolean b_ALast2;
 	boolean b_BLast2;
 	boolean b_XLast2;
@@ -88,24 +94,47 @@ public class Inputs {
 	boolean b_RightStickLast2;
 	
 	
-	
+	// Other inputs
 	boolean b_climbSwitch;
+	boolean b_Guitar1;
+	boolean b_Guitar2;
+	boolean b_Guitar3;
+	boolean b_Guitar4;
+	boolean b_Guitar5;
+	boolean b_Guitar6;
+	boolean b_Guitar7;
+	boolean b_Guitar8;
+	boolean b_Guitar9;
+	boolean b_Guitar10;
+
+	boolean b_GuitarLast1;
+	boolean b_GuitarLast2;
+	boolean b_GuitarLast3;
+	boolean b_GuitarLast4;
+	boolean b_GuitarLast5;
+	boolean b_GuitarLast6;
+	boolean b_GuitarLast7;
+	boolean b_GuitarLast8;
+	boolean b_GuitarLast9;
+	boolean b_GuitarLast10;
 	
 	
 	public Inputs(int USBConnector_Controller1,
 			int USBConnector_Controller2,
-			int USBConnector_ClimbSwitch){
+			int USBConnector_emulator){
 		xBox1 = new Joystick(USBConnector_Controller1);
 		xBox2 = new Joystick(USBConnector_Controller2);
-		climbSwitch = new Joystick(USBConnector_ClimbSwitch);
+		emulator = new Joystick(USBConnector_emulator);
 		zeroInputs();
 	}
 	
 	public void readValues(){
 		
 		//  Each of these returns a double value between -1 and 1
+		//  Values between -0.2 and 0.2 have been removed to prevent drift
 		
 		
+		// Controller 1
 		if (xBox1.getRawAxis(0) < 0.2 && xBox1.getRawAxis(0)> -0.2){
 			d_LeftXAxis1 = 0.0;
 		}
@@ -140,7 +169,7 @@ public class Inputs {
 		
 		
 		
-		
+		// Controller 2
 		if (xBox2.getRawAxis(0) < 0.2 && xBox2.getRawAxis(0)> -0.2){
 			d_LeftXAxis2 = 0.0;
 		}
@@ -180,6 +209,7 @@ public class Inputs {
 		
 		
 		//  Buttons return true when pressed, false otherwise
+		
 		b_AButton1 = xBox1.getRawButton(1);
 		b_BButton1 = xBox1.getRawButton(2);
 		b_XButton1 = xBox1.getRawButton(3);
@@ -216,10 +246,23 @@ public class Inputs {
 		i_DPad2 = xBox2.getPOV();
 
 		
-		
-		b_climbSwitch = climbSwitch.getRawButton(7);
+		// Other inputs
+		b_Guitar1 = emulator.getRawButton(1);
+		b_Guitar2 = emulator.getRawButton(2);
+		b_Guitar3 = emulator.getRawButton(3);
+		b_Guitar4 = emulator.getRawButton(4);
+		b_Guitar5 = emulator.getRawButton(5);
+		b_Guitar6 = emulator.getRawButton(6);
+		b_Guitar7 = emulator.getRawButton(7);
+		b_Guitar8 = emulator.getRawButton(8);
+		b_Guitar1 = emulator.getRawButton(9);
+		b_Guitar10 = emulator.getRawButton(10);
+		b_climbSwitch = emulator.getRawButton(12);
 	}
 	
+	
+	// getDpad1 and getDpad 2 convert the angle to a String
+	// either U, D, L, or R
 	public String getDPad1(){
 		if (this.i_DPad1 < 45 || this.i_DPad1 >=315){
 			return "U";
@@ -332,6 +375,9 @@ public class Inputs {
 	}
 	
 	
+	
+	
+	// Each button has a tap function that returns a boolean
 	public boolean tapA1(){
 		boolean current = this.b_AButton1;
 		boolean last = this.b_ALast1;
@@ -571,8 +617,126 @@ public class Inputs {
 			return false;
 		}
 	}
-		
-		
+	
+	public boolean tapGuitar1(){
+		boolean current = this.b_Guitar1;
+		boolean last = this.b_GuitarLast1;
+		this.b_GuitarLast1 = current;
+		if (current && !last){
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	
+	public boolean tapGuitar2(){
+		boolean current = this.b_Guitar2;
+		boolean last = this.b_GuitarLast2;
+		this.b_GuitarLast2 = current;
+		if (current && !last){
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	
+	public boolean tapGuitar3(){
+		boolean current = this.b_Guitar3;
+		boolean last = this.b_GuitarLast3;
+		this.b_GuitarLast3 = current;
+		if (current && !last){
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	
+	public boolean tapGuitar4(){
+		boolean current = this.b_Guitar4;
+		boolean last = this.b_GuitarLast4;
+		this.b_GuitarLast4 = current;
+		if (current && !last){
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	
+	public boolean tapGuitar5(){
+		boolean current = this.b_Guitar5;
+		boolean last = this.b_GuitarLast5;
+		this.b_GuitarLast5 = current;
+		if (current && !last){
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	
+	public boolean tapGuitar6(){
+		boolean current = this.b_Guitar6;
+		boolean last = this.b_GuitarLast6;
+		this.b_GuitarLast6 = current;
+		if (current && !last){
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	
+	public boolean tapGuitar7(){
+		boolean current = this.b_Guitar7;
+		boolean last = this.b_GuitarLast7;
+		this.b_GuitarLast7 = current;
+		if (current && !last){
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	
+	public boolean tapGuitar8(){
+		boolean current = this.b_Guitar8;
+		boolean last = this.b_GuitarLast8;
+		this.b_GuitarLast8 = current;
+		if (current && !last){
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	
+	public boolean tapGuitar9(){
+		boolean current = this.b_Guitar9;
+		boolean last = this.b_GuitarLast9;
+		this.b_GuitarLast9 = current;
+		if (current && !last){
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	
+	public boolean tapGuitar10(){
+		boolean current = this.b_Guitar10;
+		boolean last = this.b_GuitarLast10;
+		this.b_GuitarLast10 = current;
+		if (current && !last){
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
 		
 	 
 	public void zeroInputs(){
@@ -636,5 +800,16 @@ public class Inputs {
 		this.b_RightStickLast2 = false;
 		
 		this.b_climbSwitch = false;
+		this.b_Guitar1 = false;
+		this.b_Guitar2 = false;
+		this.b_Guitar3 = false;
+		this.b_Guitar4 = false;
+		this.b_Guitar5 = false;
+		this.b_Guitar6 = false;
+		this.b_Guitar7 = false;
+		this.b_Guitar8 = false;
+		this.b_Guitar9 = false;
+		this.b_Guitar10 = false;
+		
 	}
 }
